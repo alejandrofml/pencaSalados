@@ -631,24 +631,29 @@ const limpiarSecciones = () => {
     document.getElementById('tabla-posiciones').innerHTML = '';
 };
 
-const mostrarSeccion = (seccion) => {
-    limpiarSecciones();
-    const secciones = document.querySelectorAll('main section');
-    secciones.forEach(sec => {
-        if (sec.id === seccion) {
-            sec.style.display = 'block';
-        } else {
-            sec.style.display = 'none';
+const navbarNav = document.getElementById('navbarNav');
+const navLinks = document.querySelectorAll('.nav-link');
+
+navLinks.forEach(link => {
+    link.addEventListener('click', () => {
+        if (navbarNav.classList.contains('show')) {
+            new bootstrap.Collapse(navbarNav).toggle();
         }
     });
+});
 
-    if (seccion === 'posiciones') {
-        cargarPosiciones();
-    }
-    if (seccion === 'admin') {
-        mostrarPartidosAdmin();
+const mostrarSeccion = (seccion) => {
+    const secciones = document.querySelectorAll('main section');
+    secciones.forEach(sec => {
+        sec.style.display = (sec.id === seccion) ? 'block' : 'none';
+    });
+
+    // Contraer el menú después de seleccionar una sección
+    if (navbarNav.classList.contains('show')) {
+        new bootstrap.Collapse(navbarNav).toggle();
     }
 };
+
 
 
 const autenticarAdmin = (event) => {
