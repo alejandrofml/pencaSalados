@@ -3,6 +3,7 @@
 body {
     background-color: #f8f9fa;
     font-family: 'Arial', sans-serif;
+    margin: 0 auto;
 }
 
 header {
@@ -59,7 +60,7 @@ header nav ul li a:hover {
 }
 
 #partidos-container button {
-    margin: 0 10px;
+    margin: 0 auto;
 }
 
 form .form-group {
@@ -77,6 +78,13 @@ form .form-group {
 .btn {
     width: 100%;
 }
+
+
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    filter: invert(100%);
+}
+
 
 @media (min-width: 768px) {
     .btn {
