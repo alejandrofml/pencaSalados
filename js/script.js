@@ -55,7 +55,7 @@ const registrarUsuario = async (usuario, contrasena) => {
             const usuarios = data.record.usuarios || [];
             const usuarioExistente = usuarios.find(u => u.usuario === usuario);
             if (usuarioExistente) {
-                alert('El usuario ya existe. Por favor, elige otro nombre de usuario.');
+                mostrarAlerta('El usuario ya existe. Por favor, elige otro nombre de usuario.', 'danger');
                 return;
             }
             usuarios.push({ id: usuarios.length + 1, usuario, contrasena });
@@ -72,15 +72,18 @@ const registrarUsuario = async (usuario, contrasena) => {
                 body: JSON.stringify(updatedData)
             });
             if (saveResponse.ok) {
-                alert('Usuario registrado correctamente');
+                mostrarAlerta('Usuario registrado correctamente', 'success');
+                await iniciarSesion(usuario, contrasena);  // Iniciar sesión automáticamente
+                mostrarSeccion('jugar');  // Cambiar a la sección de "Jugar"
             } else {
-                alert('Error al registrar el usuario');
+                mostrarAlerta('Error al registrar el usuario', 'danger');
             }
         }
     } catch (error) {
         console.error('Error al registrar el usuario:', error);
     }
 };
+
 
 const iniciarSesion = async (usuario, contrasena) => {
     try {
@@ -104,7 +107,7 @@ const iniciarSesion = async (usuario, contrasena) => {
                 document.getElementById('form-jugar').style.display = 'block';
                 generarCartasPartidos(); // Inicializar la primera carta después de iniciar sesión
             } else {
-                alert('Usuario o contraseña incorrectos');
+                mostrarAlerta('Usuario o contraseña incorrectos', 'danger');
             }
         }
     } catch (error) {
@@ -178,7 +181,7 @@ const mostrarPartidoSiguiente = () => {
 
         actualizarBotonGuardar(); // Verificar si el botón debe habilitarse
     } else {
-        alert('Por favor, ingrese ambos resultados antes de continuar.');
+        mostrarAlerta('Por favor, ingrese ambos resultados antes de continuar.', 'danger');
     }
 };
 
@@ -236,11 +239,11 @@ const guardarJugada = async () => {
             });
 
             if (saveResponse.ok) {
-                alert('Jugadas guardadas correctamente');
+                mostrarAlerta('Jugadas guardadas correctamente', 'success');
                 usuarioActual.jugadas = [...updatedJugadas.filter(j => j.usuario === usuarioActual.usuario)];
                 cargarPosiciones(); // Actualizar la tabla de posiciones
             } else {
-                alert('Error al guardar las jugadas');
+                mostrarAlerta('Error al guardar las jugadas', 'danger');
             }
         }
     } catch (error) {
@@ -386,10 +389,10 @@ const guardarResultado = async (resultado) => {
                 body: JSON.stringify(updatedData)
             });
             if (saveResponse.ok) {
-                alert('Resultado guardado correctamente');
+                mostrarAlerta('Resultado guardado correctamente', 'success');
                 cargarPosiciones(); // Actualizar la tabla de posiciones
             } else {
-                alert('Error al guardar el resultado');
+                mostrarAlerta('Error al guardar el resultado', 'danger');
             }
         }
     } catch (error) {
@@ -502,10 +505,10 @@ const eliminarUsuario = async (nombreUsuario) => {
             });
 
             if (saveResponse.ok) {
-                alert(`Usuario ${nombreUsuario} y sus jugadas han sido eliminados correctamente`);
+                mostrarAlerta(`Usuario ${nombreUsuario} y sus jugadas han sido eliminados correctamente`, 'success');
                 cargarPosiciones(); // Actualizar la tabla de posiciones
             } else {
-                alert('Error al eliminar el usuario');
+                mostrarAlerta('Error al eliminar el usuario', 'danger');
             }
         }
     } catch (error) {
@@ -603,18 +606,18 @@ const guardarResultadoReal = async (partidoId) => {
                 });
 
                 if (saveResponse.ok) {
-                    alert('Resultado guardado correctamente');
+                    mostrarAlerta('Resultado guardado correctamente', 'success');
                     cargarPosiciones(); // Actualizar la tabla de posiciones
                     mostrarPartidosAdmin(); // Actualizar la vista después de guardar el resultado
                 } else {
-                    alert('Error al guardar el resultado');
+                    mostrarAlerta('Error al guardar el resultado', 'danger');
                 }
             }
         } catch (error) {
             console.error('Error al guardar el resultado:', error);
         }
     } else {
-        alert('Por favor ingrese ambos resultados.');
+        mostrarAlerta('Por favor ingrese ambos resultados.', 'danger');
     }
 };
 
@@ -631,22 +634,27 @@ const limpiarSecciones = () => {
     document.getElementById('tabla-posiciones').innerHTML = '';
 };
 
-const mostrarSeccion = (seccion) => {
-    limpiarSecciones();
-    const secciones = document.querySelectorAll('main section');
-    secciones.forEach(sec => {
-        if (sec.id === seccion) {
-            sec.style.display = 'block';
-        } else {
-            sec.style.display = 'none';
+const navbarNav = document.getElementById('navbarNav');
+const navLinks = document.querySelectorAll('.nav-link');
+
+navLinks.forEach(link => {
+    link.addEventListener('click', () => {
+        if (navbarNav.classList.contains('show')) {
+            new bootstrap.Collapse(navbarNav).toggle();
         }
     });
+});
 
-    if (seccion === 'posiciones') {
-        cargarPosiciones();
-    }
-    if (seccion === 'admin') {
-        mostrarPartidosAdmin();
+const mostrarSeccion = (seccion) => {
+    limpiarSecciones(); // Limpiar secciones antes de mostrar una nueva
+    const secciones = document.querySelectorAll('main section');
+    secciones.forEach(sec => {
+        sec.style.display = (sec.id === seccion) ? 'block' : 'none';
+    });
+
+    // Contraer el menú después de seleccionar una sección
+    if (navbarNav.classList.contains('show')) {
+        new bootstrap.Collapse(navbarNav).toggle();
     }
 };
 
@@ -661,6 +669,25 @@ const autenticarAdmin = (event) => {
         document.getElementById('admin-content').style.display = 'block';
         mostrarPartidosAdmin();
     } else {
-        alert('Usuario o contraseña incorrectos');
+        mostrarAlerta('Usuario o contraseña incorrectos', 'danger');
     }
+};
+
+
+const mostrarAlerta = (mensaje, tipo) => {
+    const alertContainer = document.getElementById('alert-container');
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${tipo} alert-dismissible fade show`;
+    alertDiv.role = 'alert';
+    alertDiv.innerHTML = `
+        ${mensaje}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    `;
+    alertContainer.appendChild(alertDiv);
+
+    // Quitar la alerta después de 5 segundos
+    setTimeout(() => {
+        alertDiv.classList.remove('show');
+        setTimeout(() => alertDiv.remove(), 150);
+    }, 5000);
 };
